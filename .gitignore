@@ -3,4 +3,3 @@ dist/
 node_modules/
 thumbs.db
 .idea/package-lock.json
-resources
