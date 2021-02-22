@@ -1,1 +1,6 @@
-@import '~tailwindcss/dist/tailwind.css';
+@import './reset.css';
+@import '~tui-grid/dist/tui-grid.css';
+
+body > div {
+  min-height: 100vh;
+}

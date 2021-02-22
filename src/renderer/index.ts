@@ -3,63 +3,59 @@ import { div, input, makeDOMDriver, MainDOMSource, VNode } from '@cycle/dom';
 import { Stream } from 'xstream';
 import debounce from 'xstream/extra/debounce';
 import * as ipc from './ipc.adapter';
+import { makeTuiGridDriver } from './tuiGridDriver';
+import { Model } from './common.internalTypes';
 
-import './style.css';
+import './style';
 
 type Sources = {
   DOM: MainDOMSource;
+  Grid: {
+    change: Stream<unknown>;
+  };
 };
 
 type Sinks = {
   DOM: Stream<VNode>;
+  Grid: Stream<readonly Model[]>;
 };
 
 function main(sources: Sources): Sinks {
-  const input$ = sources.DOM.select('.searchterm').events('input');
-  const searchterm$ = input$.map(
-    (e): string => (e.target as HTMLInputElement).value
-  );
+  const changeValue$ = sources.DOM.select('.searchterm')
+    .events('input')
+    .map((e): string => (e.target as HTMLInputElement).value);
 
-  searchterm$.compose(debounce(60)).subscribe({
+  changeValue$.compose(debounce(60)).addListener({
     next: (value) => {
-      console.log('in', value);
       ipc.send(value);
     },
   });
 
-  ipc.error$.subscribe({
+  sources.Grid.change.addListener({
+    next: (value) => {
+      console.log(value);
+    },
+  });
+
+  ipc.error$.addListener({
     next: (error) => {
       console.error(error);
     },
   });
 
-  const vdom$ = ipc.data$.startWith([]).map((data) =>
+  const vdom$ = changeValue$.startWith('').map(() =>
     div([
-      input('.searchterm.border-b.w-screen.py-2.px-6.mb-3.h-10.text-sm', {
+      input('.searchterm', {
         attrs: { type: 'text', placeholder: 'Suche' },
       }),
-      div(
-        '.mx-2',
-        div(
-          '.grid.grid-rows-5.grid-cols-5.gap-2.text-sm',
-          data
-            .slice(0, 50)
-            .flatMap((item) => [
-              item.itemSerialNumber,
-              item.itemCompanyName,
-              item.itemDescription,
-              item.itemEmployeeMarkme,
-              item.itemLeave,
-            ])
-            .map((field) =>
-              div('.hover:bg-purple-100.hover:text-purple-400', field)
-            )
-        )
-      ),
+      div('.grid'),
     ])
   );
 
-  return { DOM: vdom$ };
+  return { DOM: vdom$, Grid: ipc.data$ };
 }
 
-run(main, { DOM: makeDOMDriver('#app') });
+run(main, {
+  DOM: makeDOMDriver('body'),
+  Grid: makeTuiGridDriver('.grid'),
+});

@@ -14,7 +14,7 @@ export const error$ = xs.create({
   },
 });
 
-export const data$ = xs.create<Model[]>({
+export const data$ = xs.create<readonly Model[]>({
   start: (listener) => {
     ipcRenderer.on('binary:out', (_, { data }) => {
       console.log('out', data);
