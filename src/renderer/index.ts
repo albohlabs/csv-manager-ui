@@ -3,37 +3,45 @@ import { div, input, makeDOMDriver, MainDOMSource, VNode } from '@cycle/dom';
 import { Stream } from 'xstream';
 import debounce from 'xstream/extra/debounce';
 import * as ipc from './ipc.adapter';
-import { makeTuiGridDriver } from './tuiGridDriver';
-import { Model } from './common.internalTypes';
+import { GridEvents, GridSink, makeGridDriver } from './gridDriver';
 
 import './style';
 
 type Sources = {
   DOM: MainDOMSource;
-  Grid: {
-    change: Stream<unknown>;
-  };
+  Grid: Stream<GridEvents>;
 };
 
 type Sinks = {
   DOM: Stream<VNode>;
-  Grid: Stream<readonly Model[]>;
+  Grid: GridSink;
 };
 
 function main(sources: Sources): Sinks {
-  const changeValue$ = sources.DOM.select('.searchterm')
+  const input$ = sources.DOM.select('.searchterm');
+
+  const changeValue$ = input$
     .events('input')
     .map((e): string => (e.target as HTMLInputElement).value);
 
-  changeValue$.compose(debounce(60)).addListener({
+  input$
+    .element()
+    .take(1)
+    .addListener({
+      next: (el) => {
+        (el as HTMLElement).focus();
+      },
+    });
+
+  changeValue$.compose(debounce(250)).addListener({
     next: (value) => {
       ipc.send(value);
     },
   });
 
-  sources.Grid.change.addListener({
-    next: (value) => {
-      console.log(value);
+  sources.Grid.addListener({
+    next: (event) => {
+      console.log(event.type, event);
     },
   });
 
@@ -46,16 +54,19 @@ function main(sources: Sources): Sinks {
   const vdom$ = changeValue$.startWith('').map(() =>
     div([
       input('.searchterm', {
-        attrs: { type: 'text', placeholder: 'Suche' },
+        attrs: { type: 'text', placeholder: '‍🔍 Suche', tabindex: 0 },
       }),
       div('.grid'),
     ])
   );
 
-  return { DOM: vdom$, Grid: ipc.data$ };
+  return {
+    DOM: vdom$,
+    Grid: ipc.data$,
+  };
 }
 
 run(main, {
   DOM: makeDOMDriver('body'),
-  Grid: makeTuiGridDriver('.grid'),
+  Grid: makeGridDriver('.grid'),
 });

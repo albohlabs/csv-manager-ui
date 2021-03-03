@@ -6,10 +6,12 @@ import { spawnLazy } from './binary.adapter';
 import * as ipc from './ipc.adapter';
 import * as TE from 'fp-ts/TaskEither';
 import * as RTE from 'fp-ts/ReaderTaskEither';
+import * as E from 'fp-ts/Either';
 import * as T from 'fp-ts/Task';
 import * as RA from 'fp-ts/ReadonlyArray';
-import { pipe } from 'fp-ts/lib/function';
+import { pipe, flow } from 'fp-ts/lib/function';
 import { error, log } from 'fp-ts/lib/Console';
+import { decoder } from '../renderer/common.internalTypes';
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow: BrowserWindow | null;
@@ -91,7 +93,7 @@ const spawnWithPath = pipe(
       RTE.map(spawnLazy),
       // eslint-disable-next-line array-callback-return
       RTE.map((binary) => {
-        binary.onData(ipc.sendData(win));
+        binary.onData(flow(decoder, E.bimap(error, ipc.sendData(win))));
         binary.onError(ipc.sendError(win));
 
         ipcMain.on('binary:in', (_, term: string) => {

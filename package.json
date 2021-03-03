@@ -13,10 +13,11 @@
   "dependencies": {
     "@cycle/dom": "^22.8.0",
     "@cycle/run": "^5.5.0",
+    "ag-grid-community": "^25.1.0",
     "electron-util": "^0.14.2",
     "fp-ts": "^2.9.5",
+    "io-ts": "^2.2.15",
     "source-map-support": "^0.5.16",
-    "tui-grid": "^4.16.1",
     "xstream": "^11.14.0"
   },
   "devDependencies": {

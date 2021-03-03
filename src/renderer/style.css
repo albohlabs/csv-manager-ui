@@ -1,6 +1,47 @@
 @import './reset.css';
-@import '~tui-grid/dist/tui-grid.css';
+@import '~ag-grid-community/dist/styles/ag-grid.css';
+@import '~ag-grid-community/dist/styles/ag-theme-alpine.css';
 
-body > div {
-  min-height: 100vh;
+body {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, Helvetica, Arial,
+    sans-serif;
+}
+
+:root {
+  --fg-color: hsla(199, 18%, 40%, 1);
+  --fg-color--light: hsla(200, 18%, 46%, 1);
+  --fg-color--dark: hsla(199, 18%, 33%, 1);
+  --bg-color: hsla(0, 0%, 100%, 1);
+  --bg-color--light: hsla(0, 0%, 100%, 0.7);
+
+  --searchterm-height: 2.4rem;
+}
+
+.grid {
+  height: calc(100vh - var(--searchterm-height));
+  width: 100vw;
+}
+
+.searchterm {
+  position: relative;
+  width: 100vw;
+  height: var(--searchterm-height);
+  padding: 0 2.2rem 0 2.2rem;
+  z-index: 2;
+
+  border: 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  outline: none;
+
+  background-color: var(--bg-color);
+  transition: color 250ms, background-color 250ms;
+
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+}
+
+.searchterm::placeholder {
+  transition: color 250ms;
+  color: var(--fg-color--dark);
 }
